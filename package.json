@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "npm run build:untouched && npm run build:optimized",
-    "build:untouched": "asc assembly/asm-json-parser.ts -b build/untouched.wasm -t build/untouched.wat --validate --sourceMap --measure",
-    "build:optimized": "asc -O assembly/asm-json-parser.ts -b build/optimized.wasm -t build/optimized.wat --validate --sourceMap --measure",
+    "build:tests": "asc tests/index.ts -b tests/build/untouched.wasm -t build/untouched.wat --validate --sourceMap --measure",
     "test": "node tests"
   },
   "devDependencies": {
