@@ -21,6 +21,7 @@ export class Handler {
 export function parseString<HandlerType extends Handler>(jsonString: string, handler: HandlerType): i32 {
 
 	handler.onObjectStart();
+	handler.onObjectEnd();
 
 	return 0;
 }

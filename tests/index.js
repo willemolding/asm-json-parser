@@ -14,7 +14,12 @@ var ins = new WebAssembly.Instance(mod, {
 
 // the tape tests
 
-test('Can import the module and call a function', function (t) {
+test('Can parse an empty object', function (t) {
     t.equal(ins.exports.test_parse_empty_object(), 0);
+    t.end()
+});
+
+test('Can parse an object with a single string property', function (t) {
+    t.equal(ins.exports.test_parse_single_string_property(), 0);
     t.end()
 });
