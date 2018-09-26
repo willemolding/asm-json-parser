@@ -8,15 +8,10 @@ Users can write a custom handler to parse json strings in to assemblyscript clas
 Instructions
 ------------
 
-To build to an untouched and an optimized `.wasm` including their respective `.wat` representations, run:
-
-```
-$> npm run asbuild
-```
-
-Afterwards, to run the included [test](./tests/index.js):
+To build and run the tests:
 
 ```
 $> npm install
-$> npm test
+$> npm run build
+$> npm run test
 ```
