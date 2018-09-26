@@ -1,5 +1,21 @@
 import { parseString, Handler } from '../lib/asmjson'
 
+
+/*----------  The actual tests  ----------*/
+
+
+export function test_parse_empty_object(): i32 {
+  return test_parser(`{}`, ["OS", "OE"])
+}
+
+export function test_parse_single_string_property(): i32 {
+  return test_parser(`{"aKey":"aString"}`, ["OS","key:aKey","string:aString", "OE"])
+}
+
+
+/*----------  Test running boilerplate  ----------*/
+
+
 class TestHandler extends Handler {
   events: Array<string> = []
 
@@ -21,6 +37,7 @@ class TestHandler extends Handler {
   }
 }
 
+
 function test_parser(jsonString: string, expected: Array<string>): i32 {
   var testHandler = new TestHandler()
   parseString<TestHandler>(jsonString, testHandler)
@@ -36,16 +53,4 @@ function test_parser(jsonString: string, expected: Array<string>): i32 {
     }
   }
   return 0 // code for success
-}
-
-
-/*----------  The actual tests  ----------*/
-
-
-export function test_parse_empty_object(): i32 {
-  return test_parser(`{}`, ["OS", "OE"])
-}
-
-export function test_parse_single_string_property(): i32 {
-  return test_parser(`{"aKey":"aString"}`, ["OS","key:aKey","string:aString", "OE"])
 }
