@@ -33,8 +33,25 @@ export function test_parse_null_property(): i32 {
 }
 
 export function test_parse_simple_int(): i32 {
-  return test_parser(`{"numberKey" : 10}`, ["OS","key(numberKey)","int(10)", "OE"])
+  return test_parser(`{"numberKey" : 33}`, ["OS","key(numberKey)","int(33)", "OE"])
 }
+
+export function test_parse_simple_float(): i32 {
+  return test_parser(`{"numberKey" : 1.5}`, ["OS","key(numberKey)","float(1.5)", "OE"])
+}
+
+
+export function test_different_types(): i32 {
+  return test_parser(`{"intKey" : 9999, "floatKey" : 1.5, "boolKey": true, "nullKey": null, "stringKey": "123abc"}`, 
+    ["OS",
+    "key(intKey)","int(9999)",
+    "key(floatKey)","float(1.5)",
+    "key(boolKey)","bool(true)",
+    "key(nullKey)","null", 
+    "key(stringKey)","string(123abc)", 
+    "OE"])
+}
+
 
 
 /*----------  Test running boilerplate  ----------*/
@@ -74,6 +91,10 @@ class TestHandler extends Handler {
   onInt(value: i32, stringValue: string): boolean {
     this.events.push("int("+stringValue+")");
     return true;
+  }
+  onFloat(value: f64, stringValue: string): boolean {
+    this.events.push("float("+stringValue+")");
+    return true; 
   }
 }
 

@@ -55,5 +55,14 @@ test('Can parse an object with a single integer', function (t) {
     t.end()
 });
 
+test('Can parse an object with a single float', function (t) {
+    t.equal(ins.exports.test_parse_simple_float(), 0);
+    t.end()
+});
+
+test('Can parse an object with all the different types', function (t) {
+    t.equal(ins.exports.test_different_types(), 0);
+    t.end()
+});
 
 

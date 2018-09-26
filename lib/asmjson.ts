@@ -1,5 +1,5 @@
 import "allocator/tlsf";
-import { parseI32 } from "string"
+
 // These functions should be provided to this module via the import and used to customize the parser
 
 export class Handler {
@@ -15,7 +15,7 @@ export class Handler {
 	onBool(value: boolean): boolean { return true }
 	onString(value: string): boolean { return true }
 	onInt(value: i32, stringValue: string): boolean { return true }
-	onFloat(value: f32, stringValue: string): boolean { return true }
+	onFloat(value: f64, stringValue: string): boolean { return true }
 }
 
 
@@ -130,20 +130,29 @@ function valueNull<HandlerType extends Handler>(c: string, handler: HandlerType)
 function valueNumber<HandlerType extends Handler>(c: string, handler: HandlerType): void {
 	if(whitespace.includes(c)) { // end of a number delim by whitespace
 		state = State.PostMember;
-		handler.onInt(parseI32(stringBuffer, 10), stringBuffer);
+		handleNumberParsing<HandlerType>(stringBuffer, handler)
 		stringBuffer = "";
 	} else if (c == `,`) { // jump straight to postMemberDelimiter
-		state = State.PostMember;
-		handler.onInt(parseI32(stringBuffer, 10), stringBuffer);
+		state = State.PostMemberDelimiter;
+		handleNumberParsing<HandlerType>(stringBuffer, handler)
 		stringBuffer = "";
 	} else if (c == `}`) { // jump straight to end of object
 		state = State.ObjectFinish;
-		handler.onInt(parseI32(stringBuffer, 10), stringBuffer);
+		handleNumberParsing<HandlerType>(stringBuffer, handler)
 		handler.onObjectEnd();
 		stringBuffer = "";
 	} else {
 		stringBuffer += c; // TODO: add error checking here
 	}
+}
+
+function handleNumberParsing<HandlerType extends Handler>(numberString: string, handler: HandlerType): void {
+	if(numberString.includes('.')) { // maybe find better way to tell if it is a float
+		handler.onFloat(parseFloat(stringBuffer), stringBuffer);
+	} else {
+		handler.onInt(parseI32(stringBuffer, 10), stringBuffer);
+	}
+
 }
 
 /*----------  end  ----------*/
