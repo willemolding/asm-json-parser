@@ -28,6 +28,14 @@ export function test_parse_boolean_properties(): i32 {
   return test_parser(`{"trueKey":true, "falseKey": false}`, ["OS","key(trueKey)","bool(true)", "key(falseKey)","bool(false)", "OE"])
 }
 
+export function test_parse_null_property(): i32 {
+  return test_parser(`{"nullKey":null}`, ["OS","key(nullKey)","null", "OE"])
+}
+
+export function test_parse_simple_int(): i32 {
+  return test_parser(`{"numberKey" : 10}`, ["OS","key(numberKey)","int(10)", "OE"])
+}
+
 
 /*----------  Test running boilerplate  ----------*/
 
@@ -57,6 +65,14 @@ class TestHandler extends Handler {
     } else {
       this.events.push("bool(false)")
     }
+    return true;
+  }
+  onNull(): boolean {
+    this.events.push("null")
+    return true;
+  }
+  onInt(value: i32, stringValue: string): boolean {
+    this.events.push("int("+stringValue+")");
     return true;
   }
 }

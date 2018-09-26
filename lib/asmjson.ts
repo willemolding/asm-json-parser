@@ -1,5 +1,5 @@
 import "allocator/tlsf";
-
+import { parseI32 } from "string"
 // These functions should be provided to this module via the import and used to customize the parser
 
 export class Handler {
@@ -14,7 +14,8 @@ export class Handler {
 	onNull(): boolean { return true }
 	onBool(value: boolean): boolean { return true }
 	onString(value: string): boolean { return true }
-	onInt(value: i32): boolean { return true }
+	onInt(value: i32, stringValue: string): boolean { return true }
+	onFloat(value: f32, stringValue: string): boolean { return true }
 }
 
 
@@ -32,10 +33,11 @@ enum State {
 	ValueString = 5,
 	ValueBool = 9,
 	ValueNull = 10,
-	valueNumber = 11
+	ValueNumber = 11
 }
 
 const whitespace: Array<string> = [" ", "\t", "\n", "\r"];
+const numeric: Array<string> = ["-",".","0","1","2","3","4","5","6","7","8","9"];
 
 var state: State;
 var i: i32;
@@ -81,6 +83,12 @@ function postDelimiter<HandlerType extends Handler>(c: string, handler: HandlerT
 	} else if (c == `t` || c == `f`) { // start of true | false
 		stringBuffer += c;
 		state = State.ValueBool
+	} else if (c == `n`) { // start of null
+		stringBuffer += c;
+		state = State.ValueNull;
+	} else if (numeric.includes(c)) {
+		stringBuffer += c;
+		state = State.ValueNumber;
 	}
 }
 
@@ -107,6 +115,34 @@ function valueBool<HandlerType extends Handler>(c: string, handler: HandlerType)
 		state = State.PostMember;
 		handler.onBool(false);
 		stringBuffer = "";
+	}
+}
+
+function valueNull<HandlerType extends Handler>(c: string, handler: HandlerType): void {
+	stringBuffer += c;
+	if(stringBuffer == "null") { // end of true literal
+		state = State.PostMember;
+		handler.onNull();
+		stringBuffer = "";
+	}
+}
+
+function valueNumber<HandlerType extends Handler>(c: string, handler: HandlerType): void {
+	if(whitespace.includes(c)) { // end of a number delim by whitespace
+		state = State.PostMember;
+		handler.onInt(parseI32(stringBuffer, 10), stringBuffer);
+		stringBuffer = "";
+	} else if (c == `,`) { // jump straight to postMemberDelimiter
+		state = State.PostMember;
+		handler.onInt(parseI32(stringBuffer, 10), stringBuffer);
+		stringBuffer = "";
+	} else if (c == `}`) { // jump straight to end of object
+		state = State.ObjectFinish;
+		handler.onInt(parseI32(stringBuffer, 10), stringBuffer);
+		handler.onObjectEnd();
+		stringBuffer = "";
+	} else {
+		stringBuffer += c; // TODO: add error checking here
 	}
 }
 
@@ -162,6 +198,12 @@ export function parseString<HandlerType extends Handler>(jsonString: string, han
 				break;
 			case State.ValueBool:
 				valueBool<HandlerType>(c, handler);
+				break;
+			case State.ValueNull:
+				valueNull<HandlerType>(c, handler);
+				break;
+			case State.ValueNumber:
+				valueNumber<HandlerType>(c, handler);
 				break;
 			case State.PostMember:
 				postMember<HandlerType>(c, handler);

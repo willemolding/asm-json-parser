@@ -45,4 +45,15 @@ test('Can parse an object with boolean properties', function (t) {
     t.end()
 });
 
+test('Can parse an object with a null property', function (t) {
+    t.equal(ins.exports.test_parse_null_property(), 0);
+    t.end()
+});
+
+test('Can parse an object with a single integer', function (t) {
+    t.equal(ins.exports.test_parse_simple_int(), 0);
+    t.end()
+});
+
+
 
