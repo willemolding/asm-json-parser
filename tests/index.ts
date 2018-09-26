@@ -1,4 +1,4 @@
-import { JsonParser, Handler } from '../lib/asmjson'
+import { parseString, Handler } from '../lib/asmjson'
 
 
 /*----------  The actual tests  ----------*/
@@ -44,12 +44,11 @@ class TestHandler extends Handler {
 
 function test_parser(jsonString: string, expected: Array<string>): i32 {
   let testHandler = new TestHandler()
-  let parser = new JsonParser<TestHandler>()
-  parser.parseString(jsonString, testHandler)
+  parseString<TestHandler>(jsonString, testHandler)
 
   // the correct number of events were triggered
   if(expected.length != testHandler.events.length) {
-    return testHandler.events.length // code for wrong length
+    return -1 // code for wrong length
   }
   // the events are correct and in order
   for(let i = 0 ; i < expected.length; ++i) {
