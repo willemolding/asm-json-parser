@@ -25,11 +25,14 @@ enum State {
 	MemberKey = 2,
 	PostKey = 3,
 	PostDelimiter = 4,
-	MemberValue = 5,
 	PostMember = 6,
 	PostMemberDelimiter = 7,
 	ObjectFinish = 8,
-	Finish = 9
+
+	ValueString = 5,
+	ValueBool = 9,
+	ValueNull = 10,
+	valueNumber = 11
 }
 
 const whitespace: Array<string> = [" ", "\t", "\n", "\r"];
@@ -74,12 +77,17 @@ function preDelimiter<HandlerType extends Handler>(c: string, handler: HandlerTy
 
 function postDelimiter<HandlerType extends Handler>(c: string, handler: HandlerType): void {
 	if(c == `"`) { // start of string
-		state = State.MemberValue;
+		state = State.ValueString;
+	} else if (c == `t` || c == `f`) { // start of true | false
+		stringBuffer += c;
+		state = State.ValueBool
 	}
 }
 
-// TODO: modifiy to handle values other than strings...
-function memberValue<HandlerType extends Handler>(c: string, handler: HandlerType): void {
+/*----------  Value parsing states  ----------*/
+
+
+function valueString<HandlerType extends Handler>(c: string, handler: HandlerType): void {
 	if(c == `"`) { // end of string
 		state = State.PostMember;
 		handler.onString(stringBuffer);
@@ -88,6 +96,22 @@ function memberValue<HandlerType extends Handler>(c: string, handler: HandlerTyp
 		stringBuffer += c;
 	}
 }
+
+function valueBool<HandlerType extends Handler>(c: string, handler: HandlerType): void {
+	stringBuffer += c;
+	if(stringBuffer == "true") { // end of true literal
+		state = State.PostMember;
+		handler.onBool(true);
+		stringBuffer = "";
+	} else if (stringBuffer == "false") { // end of false literal
+		state = State.PostMember;
+		handler.onBool(false);
+		stringBuffer = "";
+	}
+}
+
+/*----------  end  ----------*/
+
 
 function postMember<HandlerType extends Handler>(c: string, handler: HandlerType): void {
 	if(c == `,`) {
@@ -107,11 +131,6 @@ function postMemberDelimiter<HandlerType extends Handler>(c: string, handler: Ha
 function objectFinish<HandlerType extends Handler>(c: string, handler: HandlerType): void {
 
 }
-
-function finish<HandlerType extends Handler>(c: string, handler: HandlerType): void {
-
-}
-
 
 
 export function parseString<HandlerType extends Handler>(jsonString: string, handler: HandlerType): i32 {
@@ -138,14 +157,20 @@ export function parseString<HandlerType extends Handler>(jsonString: string, han
 			case State.PostDelimiter:
 				postDelimiter<HandlerType>(c, handler);
 				break;
-			case State.MemberValue:
-				memberValue<HandlerType>(c, handler);
+			case State.ValueString:
+				valueString<HandlerType>(c, handler);
+				break;
+			case State.ValueBool:
+				valueBool<HandlerType>(c, handler);
 				break;
 			case State.PostMember:
 				postMember<HandlerType>(c, handler);
 				break;
 			case State.PostMemberDelimiter:
 				postMemberDelimiter<HandlerType>(c, handler);
+				break;
+			case State.ObjectFinish:
+				objectFinish<HandlerType>(c, handler);
 				break;
 		}
 	}

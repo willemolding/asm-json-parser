@@ -24,9 +24,9 @@ export function test_parse_multi_string_properties(): i32 {
   return test_parser(`{"aKey":"aString", "aKey2":"aString2"}`, ["OS","key(aKey)","string(aString)","key(aKey2)","string(aString2)", "OE"])
 }
 
-// export function test_parse_boolean_properties(): i32 {
-//   return test_parser(`{"trueKey":true, "falseKey": false}`, ["OS","key(trueKey)","bool(true)"," key(falseKey)","bool(false)", "OE"])
-// }
+export function test_parse_boolean_properties(): i32 {
+  return test_parser(`{"trueKey":true, "falseKey": false}`, ["OS","key(trueKey)","bool(true)", "key(falseKey)","bool(false)", "OE"])
+}
 
 
 /*----------  Test running boilerplate  ----------*/
@@ -37,19 +37,27 @@ class TestHandler extends Handler {
 
   onObjectStart(): boolean {
     this.events.push("OS")
-    return true
+    return true;
   }
   onObjectEnd(): boolean {
     this.events.push("OE")
-    return true
+    return true;
   }
   onKey(value: string): boolean {
    this.events.push("key("+value+")")
-   return true
+   return true;
   }
   onString(value: string): boolean {
    this.events.push("string("+value+")")
-   return true
+   return true;
+  }
+  onBool(value: boolean): boolean {
+    if(value == true) {
+      this.events.push("bool(true)")
+    } else {
+      this.events.push("bool(false)")
+    }
+    return true;
   }
 }
 

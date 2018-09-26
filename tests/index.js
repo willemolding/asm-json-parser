@@ -39,3 +39,10 @@ test('Can parse an object with multiple string properties', function (t) {
     t.equal(ins.exports.test_parse_multi_string_properties(), 0);
     t.end()
 });
+
+test('Can parse an object with boolean properties', function (t) {
+    t.equal(ins.exports.test_parse_boolean_properties(), 0);
+    t.end()
+});
+
+
