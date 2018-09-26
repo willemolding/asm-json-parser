@@ -15,3 +15,51 @@ $> npm install
 $> npm run build:tests
 $> npm run test
 ```
+Writing a parser for a custom assemblyscript class requires defining a new class that extends `Handler` and then using this to populate the fields.
+
+```typescript
+import {parseString, Handler} from 'asmjson'
+
+class Address {
+  houseNumber: i32
+  streetName: string,
+  stretType: string
+}
+
+class AddressPopulator extends Handler {
+  currentKey: string
+
+  constructor(public address: Address) { }
+  
+  onKey(value: string): boolean {
+    currentKey = value;
+    return true;
+  }
+
+  onInt(value: i32, stringValue: string) {
+  	if(currentKey == "house_number") {
+  		this.address.houseNumber = value;
+  	}
+  }
+
+  onString(value: string) {
+    if(currentKey == "street_name") {
+    	this.address.streetName = value;
+    } else if (currentKey == "street_type") {
+    	this.address.street_type = value;
+    }
+  }
+}
+
+let address = new Address()
+let handler = new AddressPopulator(address)
+
+jsonString = `{"house_number": 420, "street_name": "smith", "street_type": "street"}`
+
+parseString<AddressPopulator>(jsonString, handler)
+
+// the fields of address should now be populated
+console.log(address.streetName) //smith
+
+
+```
