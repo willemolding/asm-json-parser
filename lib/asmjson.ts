@@ -27,8 +27,9 @@ enum State {
 	PostDelimiter = 4,
 	MemberValue = 5,
 	PostMember = 6,
-	ObjectFinish = 7,
-	Finish = 8
+	PostMemberDelimiter = 7,
+	ObjectFinish = 8,
+	Finish = 9
 }
 
 const whitespace: Array<string> = [" ", "\t", "\n", "\r"];
@@ -90,10 +91,16 @@ function memberValue<HandlerType extends Handler>(c: string, handler: HandlerTyp
 
 function postMember<HandlerType extends Handler>(c: string, handler: HandlerType): void {
 	if(c == `,`) {
-		state = State.PostDelimiter
+		state = State.PostMemberDelimiter
 	} else if (c == `}`) {
 		state = State.ObjectFinish;
 		handler.onObjectEnd();
+	}
+}
+
+function postMemberDelimiter<HandlerType extends Handler>(c: string, handler: HandlerType): void {
+	if(c == `"`) { // start of string
+		state = State.MemberKey;
 	}
 }
 
