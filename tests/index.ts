@@ -24,9 +24,9 @@ export function test_parse_multi_string_properties(): i32 {
   return test_parser(`{"aKey":"aString", "aKey2":"aString2"}`, ["OS","key(aKey)","string(aString)","key(aKey2)","string(aString2)", "OE"])
 }
 
-export function test_parse_boolean_properties(): i32 {
-  return test_parser(`{"trueKey":true, "falseKey": false}`, ["OS","key(trueKey)","bool(true)"," key(falseKey)","bool(false)", "OE"])
-}
+// export function test_parse_boolean_properties(): i32 {
+//   return test_parser(`{"trueKey":true, "falseKey": false}`, ["OS","key(trueKey)","bool(true)"," key(falseKey)","bool(false)", "OE"])
+// }
 
 
 /*----------  Test running boilerplate  ----------*/

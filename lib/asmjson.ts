@@ -23,7 +23,7 @@ enum State {
 	Start = 0,
 	ObjectInitial = 1,
 	MemberKey = 2,
-	PreDelimiter = 3,
+	PostKey = 3,
 	PostDelimiter = 4,
 	MemberValue = 5,
 	PostMember = 6,
@@ -51,14 +51,14 @@ function objectInitial<HandlerType extends Handler>(c: string, handler: HandlerT
 	if(c == `}`) {
 		state = State.ObjectInitial;
 		handler.onObjectEnd();
-	} else if (c == `"`) {
+	} else if (c == `"`) { // start of key string
 		state = State.MemberKey;
 	}
 }
 
 function memberKey<HandlerType extends Handler>(c: string, handler: HandlerType): void {
-	if(c == `"`) {
-		state = State.PreDelimiter;
+	if(c == `"`) { // end of key string
+		state = State.PostKey;
 		handler.onKey(stringBuffer);
 		stringBuffer = "";
 	} else {
@@ -132,7 +132,7 @@ export function parseString<HandlerType extends Handler>(jsonString: string, han
 			case State.MemberKey:
 				memberKey<HandlerType>(c, handler);
 				break;
-			case State.PreDelimiter:
+			case State.PostKey:
 				preDelimiter<HandlerType>(c, handler);
 				break;
 			case State.PostDelimiter:
@@ -143,6 +143,9 @@ export function parseString<HandlerType extends Handler>(jsonString: string, han
 				break;
 			case State.PostMember:
 				postMember<HandlerType>(c, handler);
+				break;
+			case State.PostMemberDelimiter:
+				postMemberDelimiter<HandlerType>(c, handler);
 				break;
 		}
 	}
