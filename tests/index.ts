@@ -53,6 +53,20 @@ export function test_different_types(): i32 {
 }
 
 
+export function test_parse_simple_nested_object(): i32 {
+  return test_parser(`{"objectKey" : {"stringKey": "aString" } }`, ["OS","key(objectKey)","OS", "key(stringKey)", "string(aString)", "OE", "OE"])
+}
+
+export function test_parse_more_complex_nested_object(): i32 {
+  return test_parser(`{"objectKey" : {"stringKey": "aString", "objectKey2": {"nullKey": null} } }`, 
+    ["OS","key(objectKey)",
+      "OS", "key(stringKey)", "string(aString)", "key(objectKey2)", 
+        "OS",  "key(nullKey)", "null",
+        "OE",
+      "OE",
+     "OE"])
+}
+
 
 /*----------  Test running boilerplate  ----------*/
 
@@ -105,7 +119,8 @@ function test_parser(jsonString: string, expected: Array<string>): i32 {
 
   // the correct number of events were triggered
   if(expected.length != testHandler.events.length) {
-    return -1 // code for wrong length
+    // return -1 // code for wrong length
+    return testHandler.events.length
   }
   // the events are correct and in order
   for(let i = 0 ; i < expected.length; ++i) {

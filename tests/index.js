@@ -65,4 +65,15 @@ test('Can parse an object with all the different types', function (t) {
     t.end()
 });
 
+test('Can parse a simple nested object', function (t) {
+    t.equal(ins.exports.test_parse_simple_nested_object(), 0);
+    t.end()
+});
+
+test('Can parse a more complex', function (t) {
+    t.equal(ins.exports.test_parse_more_complex_nested_object(), 0);
+    t.end()
+});
+
+
 

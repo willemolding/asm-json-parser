@@ -12,6 +12,6 @@ To build and run the tests:
 
 ```
 $> npm install
-$> npm run build
+$> npm run build:tests
 $> npm run test
 ```

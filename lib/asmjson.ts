@@ -28,7 +28,6 @@ enum State {
 	PostDelimiter = 4,
 	PostMember = 6,
 	PostMemberDelimiter = 7,
-	ObjectFinish = 8,
 
 	ValueString = 5,
 	ValueBool = 9,
@@ -49,12 +48,14 @@ function start<HandlerType extends Handler>(c: string, handler: HandlerType): vo
 	if(c == `{`) {
 		state = State.ObjectInitial;
 		handler.onObjectStart();
+	} else if (c == `}`) {
+		handler.onObjectEnd();
 	}
 }
 
 function objectInitial<HandlerType extends Handler>(c: string, handler: HandlerType): void {
 	if(c == `}`) {
-		state = State.ObjectInitial;
+		state = State.Start;
 		handler.onObjectEnd();
 	} else if (c == `"`) { // start of key string
 		state = State.MemberKey;
@@ -71,7 +72,7 @@ function memberKey<HandlerType extends Handler>(c: string, handler: HandlerType)
 	}
 }
 
-function preDelimiter<HandlerType extends Handler>(c: string, handler: HandlerType): void {
+function postKey<HandlerType extends Handler>(c: string, handler: HandlerType): void {
 	if(c == `:`) {
 		state = State.PostDelimiter;
 	}
@@ -86,9 +87,12 @@ function postDelimiter<HandlerType extends Handler>(c: string, handler: HandlerT
 	} else if (c == `n`) { // start of null
 		stringBuffer += c;
 		state = State.ValueNull;
-	} else if (numeric.includes(c)) {
+	} else if (numeric.includes(c)) { // start of a number
 		stringBuffer += c;
 		state = State.ValueNumber;
+	} else if (c == `{`) {	// start of a child object
+		state = State.ObjectInitial;
+		handler.onObjectStart();
 	}
 }
 
@@ -137,7 +141,7 @@ function valueNumber<HandlerType extends Handler>(c: string, handler: HandlerTyp
 		handleNumberParsing<HandlerType>(stringBuffer, handler)
 		stringBuffer = "";
 	} else if (c == `}`) { // jump straight to end of object
-		state = State.ObjectFinish;
+		state = State.Start;
 		handleNumberParsing<HandlerType>(stringBuffer, handler)
 		handler.onObjectEnd();
 		stringBuffer = "";
@@ -162,7 +166,7 @@ function postMember<HandlerType extends Handler>(c: string, handler: HandlerType
 	if(c == `,`) {
 		state = State.PostMemberDelimiter
 	} else if (c == `}`) {
-		state = State.ObjectFinish;
+		state = State.Start;
 		handler.onObjectEnd();
 	}
 }
@@ -173,9 +177,6 @@ function postMemberDelimiter<HandlerType extends Handler>(c: string, handler: Ha
 	}
 }
 
-function objectFinish<HandlerType extends Handler>(c: string, handler: HandlerType): void {
-
-}
 
 
 export function parseString<HandlerType extends Handler>(jsonString: string, handler: HandlerType): i32 {
@@ -197,7 +198,7 @@ export function parseString<HandlerType extends Handler>(jsonString: string, han
 				memberKey<HandlerType>(c, handler);
 				break;
 			case State.PostKey:
-				preDelimiter<HandlerType>(c, handler);
+				postKey<HandlerType>(c, handler);
 				break;
 			case State.PostDelimiter:
 				postDelimiter<HandlerType>(c, handler);
@@ -219,9 +220,6 @@ export function parseString<HandlerType extends Handler>(jsonString: string, han
 				break;
 			case State.PostMemberDelimiter:
 				postMemberDelimiter<HandlerType>(c, handler);
-				break;
-			case State.ObjectFinish:
-				objectFinish<HandlerType>(c, handler);
 				break;
 		}
 	}
