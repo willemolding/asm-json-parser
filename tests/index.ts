@@ -10,8 +10,6 @@ class TestHandler extends Handler {
 }
 
 
-
-
 export function test_parse_empty_object(): i32 {
 
   var testHandler = new TestHandler()

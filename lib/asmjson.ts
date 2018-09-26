@@ -4,13 +4,23 @@ import "allocator/tlsf";
 
 export class Handler {
 	onObjectStart(): boolean { return true }
+	onObjectEnd(): boolean { return true }
+
+	onArrayStart(): boolean { return true }
+	onArrayEnd(): boolean { return true }
+
+	onKey(value: string): boolean {return true }
+
+	onNull(): boolean { return true }
+	onBool(value: boolean): boolean { return true }
+	onString(value: string): boolean { return true }
+	onInt(value: i32): boolean { return true }
 }
 
 
-export function parseString<HandlerType>(jsonString: string, handler: HandlerType): i32 {
+export function parseString<HandlerType extends Handler>(jsonString: string, handler: HandlerType): i32 {
 
 	handler.onObjectStart();
 
 	return 0;
 }
-
