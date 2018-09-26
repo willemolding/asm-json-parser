@@ -19,6 +19,11 @@ test('Can parse an empty object', function (t) {
     t.end()
 });
 
+test('Can parse an empty object with whitespace', function (t) {
+    t.equal(ins.exports.test_parse_empty_object_with_whitespace(), 0);
+    t.end()
+});
+
 test('Can parse an object with a single string property', function (t) {
     t.equal(ins.exports.test_parse_single_string_property(), 0);
     t.end()
