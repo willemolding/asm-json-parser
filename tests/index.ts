@@ -1,4 +1,4 @@
-import { parseString, Handler } from '../index'
+import { parseString, Handler } from '../lib/index'
 
 
 /*----------  The actual tests  ----------*/

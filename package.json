@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "homepage": "https://github.com/willemolding/asm-json-parser",
   "author": {"name": "Willem Olding", "email": "willem.olding@holo.host"},
-  "main": "index.ts",
-  "files": ["index.ts"],
+  "main": "lib/index.ts",
+  "files": ["lib/index.ts"],
   "license" : "GPL-3.0",
   "scripts": {
     "build:tests": "asc tests/index.ts -b tests/build/untouched.wasm -t build/untouched.wat --validate --sourceMap --measure",
