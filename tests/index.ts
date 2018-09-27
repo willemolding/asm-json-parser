@@ -74,41 +74,33 @@ export function test_parse_more_complex_nested_object(): i32 {
 class TestHandler extends Handler {
   events: Array<string> = new Array<string>(0)
 
-  onObjectStart(): boolean {
+  onObjectStart(): void {
     this.events.push("OS")
-    return true;
   }
-  onObjectEnd(): boolean {
+  onObjectEnd(): void {
     this.events.push("OE")
-    return true;
   }
-  onKey(value: string): boolean {
+  onKey(value: string): void {
    this.events.push("key("+value+")")
-   return true;
   }
-  onString(value: string): boolean {
+  onString(value: string): void {
    this.events.push("string("+value+")")
-   return true;
   }
-  onBool(value: boolean): boolean {
+  onBool(value: boolean): void {
     if(value == true) {
       this.events.push("bool(true)")
     } else {
       this.events.push("bool(false)")
     }
-    return true;
   }
-  onNull(): boolean {
+  onNull(): void {
     this.events.push("null")
-    return true;
   }
-  onInt(value: i32, stringValue: string): boolean {
+  onInt(value: i32, stringValue: string): void {
     this.events.push("int("+stringValue+")");
-    return true;
   }
-  onFloat(value: f64, stringValue: string): boolean {
+  onFloat(value: f64, stringValue: string): void {
     this.events.push("float("+stringValue+")");
-    return true; 
   }
 }
 

@@ -3,19 +3,22 @@ import "allocator/tlsf";
 // These functions should be provided to this module via the import and used to customize the parser
 
 export class Handler {
-	onObjectStart(): boolean { return true }
-	onObjectEnd(): boolean { return true }
 
-	onArrayStart(): boolean { return true }
-	onArrayEnd(): boolean { return true }
+	currentKey: string = "";
 
-	onKey(value: string): boolean {return true }
+	onKey(value: string): void {
+		this.currentKey = value;
+	}
 
-	onNull(): boolean { return true }
-	onBool(value: boolean): boolean { return true }
-	onString(value: string): boolean { return true }
-	onInt(value: i32, stringValue: string): boolean { return true }
-	onFloat(value: f64, stringValue: string): boolean { return true }
+	onObjectStart(): void {}
+	onObjectEnd(): void {}
+	onArrayStart(): void {}
+	onArrayEnd(): void {}
+	onNull(): void {}
+	onBool(value: boolean): void {}
+	onString(value: string): void {}
+	onInt(value: i32, stringValue: string): void {}
+	onFloat(value: f64, stringValue: string): void {}
 }
 
 
