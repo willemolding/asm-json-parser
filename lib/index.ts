@@ -5,13 +5,22 @@ import "allocator/tlsf";
 export class Handler {
 
 	currentKey: string = "";
+	// key stack keeps track of the path to the current object
+	// e.g. if the key stack is ['address', 'postal'] and currentKey is 'streetName'
+	// we are currently looking at obj.address.postal.streetName
+	keyStack: Array<string> = new Array<string>(); 
 
 	onKey(value: string): void {
 		this.currentKey = value;
 	}
 
-	onObjectStart(): void {}
-	onObjectEnd(): void {}
+	onObjectStart(): void {
+		this.keyStack.push(this.currentKey);
+	}
+	onObjectEnd(): void {
+		this.keyStack.pop();
+	}
+
 	onArrayStart(): void {}
 	onArrayEnd(): void {}
 	onNull(): void {}

@@ -75,16 +75,19 @@ class TestHandler extends Handler {
   events: Array<string> = new Array<string>(0)
 
   onObjectStart(): void {
+    super.onObjectStart();
     this.events.push("OS")
   }
   onObjectEnd(): void {
+    super.onObjectEnd();
     this.events.push("OE")
   }
   onKey(value: string): void {
-   this.events.push("key("+value+")")
+    super.onKey(value);
+    this.events.push("key("+value+")")
   }
   onString(value: string): void {
-   this.events.push("string("+value+")")
+    this.events.push("string("+value+")")
   }
   onBool(value: boolean): void {
     if(value == true) {
