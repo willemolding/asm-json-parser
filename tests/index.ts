@@ -1,4 +1,4 @@
-import { parseString, Handler } from '../lib/asmjson'
+import { parseString, Handler } from '../index'
 
 
 /*----------  The actual tests  ----------*/
