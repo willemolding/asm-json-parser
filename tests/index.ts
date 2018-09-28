@@ -74,35 +74,32 @@ export function test_parse_more_complex_nested_object(): i32 {
 class TestHandler extends Handler {
   events: Array<string> = new Array<string>(0)
 
-  onObjectStart(): void {
-    super.onObjectStart();
+  onObjectStart(keyStack: Array<string>): void {
     this.events.push("OS")
   }
-  onObjectEnd(): void {
-    super.onObjectEnd();
+  onObjectEnd(keyStack: Array<string>): void {
     this.events.push("OE")
   }
-  onKey(value: string): void {
-    super.onKey(value);
+  onKey(keyStack: Array<string>, value: string): void {
     this.events.push("key("+value+")")
   }
-  onString(value: string): void {
+  onString(keyStack: Array<string>, value: string): void {
     this.events.push("string("+value+")")
   }
-  onBool(value: boolean): void {
+  onBool(keyStack: Array<string>, value: boolean): void {
     if(value == true) {
       this.events.push("bool(true)")
     } else {
       this.events.push("bool(false)")
     }
   }
-  onNull(): void {
+  onNull(keyStack: Array<string>): void {
     this.events.push("null")
   }
-  onInt(value: i32, stringValue: string): void {
+  onInt(keyStack: Array<string>, value: i32, stringValue: string): void {
     this.events.push("int("+stringValue+")");
   }
-  onFloat(value: f64, stringValue: string): void {
+  onFloat(keyStack: Array<string>, value: f64, stringValue: string): void {
     this.events.push("float("+stringValue+")");
   }
 }
