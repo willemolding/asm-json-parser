@@ -17,11 +17,11 @@ export function test_parse_single_string_property(): i32 {
 }
 
 export function test_parse_single_string_property_with_whitespace(): i32 {
-  return test_parser(`    {   "aKey"   :  "aString"   }   `, ["OS","key(aKey)","string(aString)", "OE"])
+  return test_parser(`    {   "aKey"   :  ""   }   `, ["OS","key(aKey)","string()", "OE"])
 }
 
 export function test_parse_multi_string_properties(): i32 {
-  return test_parser(`{"aKey":"aString", "aKey2":"aString2"}`, ["OS","key(aKey)","string(aString)","key(aKey2)","string(aString2)", "OE"])
+  return test_parser(`{"aKey1":"aString1", "aKey2":"aString2"}`, ["OS","key(aKey1)","string(aString1)","key(aKey2)","string(aString2)", "OE"])
 }
 
 export function test_parse_boolean_properties(): i32 {
@@ -68,6 +68,37 @@ export function test_parse_more_complex_nested_object(): i32 {
 }
 
 
+
+export function test_parse_get_response(): i32 {
+  const jsonString = `{"header":{"entry_type":"message","timestamp":"","link":"QmRea9fVkRghiEbWshKWYLpURPw9DhGbNVHasbH2o9xg6Q","entry_hash":"QmTB1F5LNJvQHVriLH5b13oeEvDBJNA7YUjogpiX8s1yCJ","entry_signature":"","link_same_type":null},"entry":{"content":"test value","entry_type":"message"}}`
+  return test_parser(jsonString, 
+    ["OS", 
+      "key(header)",
+      "OS",
+        "key(entry_type)",
+        "string(message)",
+        "key(timestamp)",
+        "string()",
+        "key(link)",
+        "string(QmRea9fVkRghiEbWshKWYLpURPw9DhGbNVHasbH2o9xg6Q)",
+        "key(entry_hash)",
+        "string(QmTB1F5LNJvQHVriLH5b13oeEvDBJNA7YUjogpiX8s1yCJ)",
+        "key(entry_signature)",
+        "string()",
+        "key(link_same_type)",
+        "null",
+       "OE",
+       "key(entry)",
+       "OS",
+         "key(content)",
+         "string(test value)",
+         "key(entry_type)",
+         "string(message)",
+       "OE",
+      "OE"])
+}
+
+
 /*----------  Test running boilerplate  ----------*/
 
 
@@ -111,8 +142,8 @@ function test_parser(jsonString: string, expected: Array<string>): i32 {
 
   // the correct number of events were triggered
   if(expected.length != testHandler.events.length) {
-    // return -1 // code for wrong length
-    return testHandler.events.length
+    return -1 // code for wrong length
+    // return testHandler.events.length
   }
   // the events are correct and in order
   for(let i = 0 ; i < expected.length; ++i) {

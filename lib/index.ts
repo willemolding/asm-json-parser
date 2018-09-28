@@ -55,6 +55,8 @@ function start<HandlerType extends Handler>(c: string, handler: HandlerType): vo
 		handler.onObjectStart(keyStack);
 	} else if (c == `}`) {
 		handler.onObjectEnd(keyStack);
+	} else if (c == `,`) {
+		state = State.PostMemberDelimiter;
 	}
 }
 

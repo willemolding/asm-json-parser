@@ -75,5 +75,8 @@ test('Can parse a more complex', function (t) {
     t.end()
 });
 
-
+test('Can parse a get response', function (t) {
+    t.equal(ins.exports.test_parse_get_response(), 0);
+    t.end()
+});
 
