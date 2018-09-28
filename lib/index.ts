@@ -4,32 +4,26 @@ import "allocator/tlsf";
 
 export class Handler {
 
-	currentKey: string = "";
-	// key stack keeps track of the path to the current object
-	// e.g. if the key stack is ['address', 'postal'] and currentKey is 'streetName'
-	// we are currently looking at obj.address.postal.streetName
-	keyStack: Array<string> = new Array<string>(); 
+	onKey(keyStack: Array<string>, value: string): void {}
 
-	onKey(value: string): void {
-		this.currentKey = value;
-	}
+	onObjectStart(keyStack: Array<string>): void {}
+	onObjectEnd(keyStack: Array<string>): void {}
 
-	onObjectStart(): void {
-		this.keyStack.push(this.currentKey);
-	}
-	onObjectEnd(): void {
-		this.keyStack.pop();
-	}
-
-	onArrayStart(): void {}
-	onArrayEnd(): void {}
-	onNull(): void {}
-	onBool(value: boolean): void {}
-	onString(value: string): void {}
-	onInt(value: i32, stringValue: string): void {}
-	onFloat(value: f64, stringValue: string): void {}
+	onArrayStart(keyStack: Array<string>): void {}
+	onArrayEnd(keyStack: Array<string>): void {}
+	onNull(keyStack: Array<string>): void {}
+	onBool(keyStack: Array<string>, value: boolean): void {}
+	onString(keyStack: Array<string>, value: string): void {}
+	onInt(keyStack: Array<string>, value: i32, stringValue: string): void {}
+	onFloat(keyStack: Array<string>, value: f64, stringValue: string): void {}
 }
 
+
+
+const whitespace: Array<string> = [" ", "\t", "\n", "\r"];
+const numeric: Array<string> = ["-",".","0","1","2","3","4","5","6","7","8","9"];
+
+/*----------  State Variables  ----------*/
 
 
 enum State {
@@ -47,28 +41,27 @@ enum State {
 	ValueNumber = 11
 }
 
-const whitespace: Array<string> = [" ", "\t", "\n", "\r"];
-const numeric: Array<string> = ["-",".","0","1","2","3","4","5","6","7","8","9"];
 
 var state: State;
 var i: i32;
 var stringBuffer: string;
+var keyStack: Array<string>;
 
 /*----------  State Functions  ----------*/
 
 function start<HandlerType extends Handler>(c: string, handler: HandlerType): void {
 	if(c == `{`) {
 		state = State.ObjectInitial;
-		handler.onObjectStart();
+		handler.onObjectStart(keyStack);
 	} else if (c == `}`) {
-		handler.onObjectEnd();
+		handler.onObjectEnd(keyStack);
 	}
 }
 
 function objectInitial<HandlerType extends Handler>(c: string, handler: HandlerType): void {
 	if(c == `}`) {
 		state = State.Start;
-		handler.onObjectEnd();
+		handler.onObjectEnd(keyStack);
 	} else if (c == `"`) { // start of key string
 		state = State.MemberKey;
 	}
@@ -77,7 +70,8 @@ function objectInitial<HandlerType extends Handler>(c: string, handler: HandlerT
 function memberKey<HandlerType extends Handler>(c: string, handler: HandlerType): void {
 	if(c == `"`) { // end of key string
 		state = State.PostKey;
-		handler.onKey(stringBuffer);
+		handler.onKey(keyStack, stringBuffer);
+		keyStack.push(stringBuffer);
 		stringBuffer = "";
 	} else {
 		stringBuffer += c;
@@ -104,7 +98,7 @@ function postDelimiter<HandlerType extends Handler>(c: string, handler: HandlerT
 		state = State.ValueNumber;
 	} else if (c == `{`) {	// start of a child object
 		state = State.ObjectInitial;
-		handler.onObjectStart();
+		handler.onObjectStart(keyStack);
 	}
 }
 
@@ -114,7 +108,8 @@ function postDelimiter<HandlerType extends Handler>(c: string, handler: HandlerT
 function valueString<HandlerType extends Handler>(c: string, handler: HandlerType): void {
 	if(c == `"`) { // end of string
 		state = State.PostMember;
-		handler.onString(stringBuffer);
+		handler.onString(keyStack, stringBuffer);
+		keyStack.pop();
 		stringBuffer = "";
 	} else {
 		stringBuffer += c;
@@ -125,11 +120,13 @@ function valueBool<HandlerType extends Handler>(c: string, handler: HandlerType)
 	stringBuffer += c;
 	if(stringBuffer == "true") { // end of true literal
 		state = State.PostMember;
-		handler.onBool(true);
+		handler.onBool(keyStack, true);
+		keyStack.pop();
 		stringBuffer = "";
 	} else if (stringBuffer == "false") { // end of false literal
 		state = State.PostMember;
-		handler.onBool(false);
+		handler.onBool(keyStack, false);
+		keyStack.pop();
 		stringBuffer = "";
 	}
 }
@@ -138,7 +135,8 @@ function valueNull<HandlerType extends Handler>(c: string, handler: HandlerType)
 	stringBuffer += c;
 	if(stringBuffer == "null") { // end of true literal
 		state = State.PostMember;
-		handler.onNull();
+		handler.onNull(keyStack);
+		keyStack.pop();
 		stringBuffer = "";
 	}
 }
@@ -155,7 +153,12 @@ function valueNumber<HandlerType extends Handler>(c: string, handler: HandlerTyp
 	} else if (c == `}`) { // jump straight to end of object
 		state = State.Start;
 		handleNumberParsing<HandlerType>(stringBuffer, handler)
-		handler.onObjectEnd();
+		handler.onObjectEnd(keyStack);
+		if(keyStack.length > 0) {
+			keyStack.pop();
+		} else {
+			// either invalid json or end of the object
+		}
 		stringBuffer = "";
 	} else {
 		stringBuffer += c; // TODO: add error checking here
@@ -164,11 +167,11 @@ function valueNumber<HandlerType extends Handler>(c: string, handler: HandlerTyp
 
 function handleNumberParsing<HandlerType extends Handler>(numberString: string, handler: HandlerType): void {
 	if(numberString.includes('.')) { // maybe find better way to tell if it is a float
-		handler.onFloat(parseFloat(stringBuffer), stringBuffer);
+		handler.onFloat(keyStack, parseFloat(stringBuffer), stringBuffer);
 	} else {
-		handler.onInt(parseI32(stringBuffer, 10), stringBuffer);
+		handler.onInt(keyStack, parseI32(stringBuffer, 10), stringBuffer);
 	}
-
+	keyStack.pop();
 }
 
 /*----------  end  ----------*/
@@ -179,7 +182,12 @@ function postMember<HandlerType extends Handler>(c: string, handler: HandlerType
 		state = State.PostMemberDelimiter
 	} else if (c == `}`) {
 		state = State.Start;
-		handler.onObjectEnd();
+		handler.onObjectEnd(keyStack);
+		if(keyStack.length > 0) {
+			keyStack.pop();
+		} else {
+			// either invalid json or end of the object
+		}
 	}
 }
 
@@ -196,6 +204,7 @@ export function parseString<HandlerType extends Handler>(jsonString: string, han
 	state = State.Start;
 	stringBuffer = "";
 	i = 0;
+	keyStack = new Array<string>();
 
 	for(; i < jsonString.length; ++i) {
 		let c: string = jsonString[i];
