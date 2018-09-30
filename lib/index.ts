@@ -2,6 +2,10 @@ import "allocator/tlsf";
 
 // These functions should be provided to this module via the import and used to customize the parser
 
+// max number of nested objects
+const MAX_DEPTH: i32 = 10;
+
+@unmanaged
 export class Handler {
 
 	onKey(keyStack: Array<string>, value: string): void {}
@@ -44,7 +48,7 @@ enum State {
 
 var state: State;
 var i: i32;
-var stringBuffer: string;
+var stringBuffer: String;
 var keyStack: Array<string>;
 
 /*----------  State Functions  ----------*/
@@ -74,7 +78,7 @@ function memberKey<HandlerType extends Handler>(c: string, handler: HandlerType)
 		state = State.PostKey;
 		handler.onKey(keyStack, stringBuffer);
 		keyStack.push(stringBuffer);
-		stringBuffer = "";
+		resetStringBuffer();
 	} else {
 		stringBuffer += c;
 	}
@@ -112,7 +116,7 @@ function valueString<HandlerType extends Handler>(c: string, handler: HandlerTyp
 		state = State.PostMember;
 		handler.onString(keyStack, stringBuffer);
 		keyStack.pop();
-		stringBuffer = "";
+		resetStringBuffer();
 	} else {
 		stringBuffer += c;
 	}
@@ -124,12 +128,12 @@ function valueBool<HandlerType extends Handler>(c: string, handler: HandlerType)
 		state = State.PostMember;
 		handler.onBool(keyStack, true);
 		keyStack.pop();
-		stringBuffer = "";
+		resetStringBuffer();
 	} else if (stringBuffer == "false") { // end of false literal
 		state = State.PostMember;
 		handler.onBool(keyStack, false);
 		keyStack.pop();
-		stringBuffer = "";
+		resetStringBuffer();
 	}
 }
 
@@ -139,7 +143,7 @@ function valueNull<HandlerType extends Handler>(c: string, handler: HandlerType)
 		state = State.PostMember;
 		handler.onNull(keyStack);
 		keyStack.pop();
-		stringBuffer = "";
+		resetStringBuffer();
 	}
 }
 
@@ -147,11 +151,11 @@ function valueNumber<HandlerType extends Handler>(c: string, handler: HandlerTyp
 	if(whitespace.includes(c)) { // end of a number delim by whitespace
 		state = State.PostMember;
 		handleNumberParsing<HandlerType>(stringBuffer, handler)
-		stringBuffer = "";
+		resetStringBuffer();
 	} else if (c == `,`) { // jump straight to postMemberDelimiter
 		state = State.PostMemberDelimiter;
 		handleNumberParsing<HandlerType>(stringBuffer, handler)
-		stringBuffer = "";
+		resetStringBuffer();
 	} else if (c == `}`) { // jump straight to end of object
 		state = State.Start;
 		handleNumberParsing<HandlerType>(stringBuffer, handler)
@@ -161,7 +165,7 @@ function valueNumber<HandlerType extends Handler>(c: string, handler: HandlerTyp
 		} else {
 			// either invalid json or end of the object
 		}
-		stringBuffer = "";
+		resetStringBuffer();
 	} else {
 		stringBuffer += c; // TODO: add error checking here
 	}
@@ -199,14 +203,18 @@ function postMemberDelimiter<HandlerType extends Handler>(c: string, handler: Ha
 	}
 }
 
+function resetStringBuffer(): void {
+	stringBuffer = "";
+}
+
 
 
 export function parseString<HandlerType extends Handler>(jsonString: string, handler: HandlerType): i32 {
 	// initialization
 	state = State.Start;
-	stringBuffer = "";
+	resetStringBuffer()
 	i = 0;
-	keyStack = new Array<string>();
+	keyStack = new Array<string>(MAX_DEPTH);
 
 	for(; i < jsonString.length; ++i) {
 		let c: string = jsonString[i];
@@ -246,6 +254,10 @@ export function parseString<HandlerType extends Handler>(jsonString: string, han
 				break;
 		}
 	}
+
+	// free memory
+	memory.free(<usize>keyStack);
+	// memory.free(<usize>stringBuffer);
 
 	return -1;
 }

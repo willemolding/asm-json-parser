@@ -101,7 +101,7 @@ export function test_parse_get_response(): i32 {
 
 /*----------  Test running boilerplate  ----------*/
 
-
+@unmanaged
 class TestHandler extends Handler {
   events: Array<string> = new Array<string>(0)
 
