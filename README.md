@@ -63,3 +63,8 @@ console.log(address.streetName) //smith
 
 
 ```
+
+### Implementation
+This parser directly implements a state machine for stream parsing JSON strings that triggers events on certain state transitions.
+
+![Failed to load state diagram](json-parsing-state-diagram.png?raw=true "State Transition Diagram")
